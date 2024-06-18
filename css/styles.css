@@ -3,7 +3,7 @@
 }
 
 body {
-    background-color: #000000;
+    background-color: #727272;
     margin: 0;
     padding: 0;
 }
@@ -15,6 +15,13 @@ body {
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.menu {
+    padding: 5px;
+}
+.menu a {
+    text-decoration: none;
 }
 
 #input-section, #output-section {
