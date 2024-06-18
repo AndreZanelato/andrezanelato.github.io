@@ -4,25 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/rain.css">
     <title>DJ Zanelato</title>
 </head>
 <body>
 
+    <div class="rain-container"></div>
     <header>
         <div class="container">
             <div class="capa">
 
             </div>
             <div class="menu">
-                <a href="">HOME</a>
-                <a href="">SOBRE</a>
-                <a href="">+</a>
-                <a href="">CONTATO</a>
+                <a href="#home">INÍCIO</a>
+                <a href="#about">SOBRE</a>
+                <a href="#more">+</a>
+                <a href="#contact">CONTATO</a>
             </div>
         </div>
     </header>
     <div class="container">
-        <div id="input-section">
+        <div id="home">
             <h2>Pedir uma Música<a href="lista.html" id="link">:</a></h2>
             <input type="text" id="musica-input" placeholder="Digite o nome da música">
             <button onclick="pedirMusica()">Pedir Música</button>
@@ -30,3 +32,5 @@
     </div>
 </body>
 </html>
+
+<script src="/js/rain.js"></script>
