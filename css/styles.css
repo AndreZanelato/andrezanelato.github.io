@@ -1,6 +1,9 @@
-body {
+* {
     font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
+}
+
+body {
+    background-color: #000000;
     margin: 0;
     padding: 0;
 }
