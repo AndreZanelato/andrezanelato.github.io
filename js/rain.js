@@ -1,11 +1,11 @@
 function createRaindrop() {
-    const rainsContainer = document.querySelector('.rain-container');
+    const rainContainer = document.querySelector('.rain-container');
     const raindrop = document.createElement('div');
     raindrop.classList.add('raindrop');
     raindrop.style.left = `${Math.random() * 100}vw`;
-    raindrop.style.animationDuration = '${Math.random() * 0.5 + 0.5}s';
-    rainsContainer.appendChild(raindrop);
-    
+    raindrop.style.animationDuration = `${Math.random() * 0.5 + 0.5}s`;
+    rainContainer.appendChild(raindrop);
+
     setTimeout(() => {
         raindrop.remove();
     }, 2000);
