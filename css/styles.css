@@ -7,11 +7,7 @@
 /* Corpo */
 
 body {
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
     background: #0e153a;
-    flex-direction: column;
 }
 
 .container {
