@@ -11,12 +11,18 @@ body {
 }
 
 .container {
+    display: flex;
+    justify-content: center;
     max-width: 800px;
     margin: 50px auto;
-    background-color: #fff;
+    background-color: #86899c;
     padding: 20px;
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.container ul li {
+    list-style-type: none;
 }
 
 .menu {
@@ -24,6 +30,7 @@ body {
 }
 
 .menu a {
+    color: #fff;
     text-decoration: none;
-
+    font-weight: bolder;
 }
