@@ -34,9 +34,9 @@ const Index = () => {
             onDateChange={setDate}
           />
 
-          <TideTable tides={tideData} />
-
           <WeatherForecast weather={weatherData} />
+
+          <TideTable tides={tideData} />
 
           <WindForecast wind={windData} />
 
