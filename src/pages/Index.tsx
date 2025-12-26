@@ -4,7 +4,9 @@ import { LocationSearch } from "@/components/LocationSearch";
 import { DatePicker } from "@/components/DatePicker";
 import { TideTable } from "@/components/TideTable";
 import { WeatherForecast } from "@/components/WeatherForecast";
-import { generateTideData, generateWeatherData } from "@/lib/mockData";
+import { FishForecast } from "@/components/FishForecast";
+import { WindForecast } from "@/components/WindForecast";
+import { generateTideData, generateWeatherData, generateFishForecastData, generateWindData } from "@/lib/mockData";
 
 const Index = () => {
   const [location, setLocation] = useState("Santos, SP");
@@ -12,6 +14,8 @@ const Index = () => {
 
   const tideData = generateTideData(date);
   const weatherData = generateWeatherData(date, location);
+  const fishForecastData = generateFishForecastData(date, location);
+  const windData = generateWindData(date);
 
   return (
     <div className="min-h-screen sky-gradient">
@@ -33,6 +37,10 @@ const Index = () => {
           <TideTable tides={tideData} />
 
           <WeatherForecast weather={weatherData} />
+
+          <WindForecast wind={windData} />
+
+          <FishForecast forecast={fishForecastData} />
 
           {/* Footer note */}
           <p className="pt-4 text-center text-xs text-muted-foreground">
