@@ -2,36 +2,41 @@ import { useState } from "react";
 import { MapPin, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { popularLocations, type Location } from "@/lib/locations";
 
 interface LocationSearchProps {
-  location: string;
-  onLocationChange: (location: string) => void;
+  location: Location;
+  onLocationChange: (location: Location) => void;
 }
-
-const popularLocations = [
-  "Santos, SP",
-  "Rio de Janeiro, RJ",
-  "Florianópolis, SC",
-  "Recife, PE",
-  "Salvador, BA",
-];
 
 export function LocationSearch({ location, onLocationChange }: LocationSearchProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState(location);
+  const [searchValue, setSearchValue] = useState(location.name);
 
-  const handleSelect = (loc: string) => {
-    setSearchValue(loc);
+  const handleSelect = (loc: Location) => {
+    setSearchValue(loc.name);
     onLocationChange(loc);
     setIsOpen(false);
   };
 
   const handleSearch = () => {
     if (searchValue.trim()) {
-      onLocationChange(searchValue);
+      // Find matching location or use first one as fallback
+      const found = popularLocations.find(
+        loc => loc.name.toLowerCase().includes(searchValue.toLowerCase())
+      );
+      if (found) {
+        onLocationChange(found);
+      }
       setIsOpen(false);
     }
   };
+
+  const filteredLocations = searchValue.trim()
+    ? popularLocations.filter(loc =>
+        loc.name.toLowerCase().includes(searchValue.toLowerCase())
+      )
+    : popularLocations.slice(0, 8);
 
   return (
     <div className="relative">
@@ -65,21 +70,27 @@ export function LocationSearch({ location, onLocationChange }: LocationSearchPro
       </div>
 
       {isOpen && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-xl border bg-card shadow-card animate-fade-in">
+        <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-80 overflow-y-auto overflow-hidden rounded-xl border bg-card shadow-card animate-fade-in">
           <div className="p-2">
             <p className="px-3 py-2 text-xs font-medium text-muted-foreground">
-              Locais populares
+              {searchValue.trim() ? "Resultados" : "Locais populares"}
             </p>
-            {popularLocations.map((loc) => (
-              <button
-                key={loc}
-                onClick={() => handleSelect(loc)}
-                className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-muted"
-              >
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">{loc}</span>
-              </button>
-            ))}
+            {filteredLocations.length > 0 ? (
+              filteredLocations.map((loc) => (
+                <button
+                  key={loc.name}
+                  onClick={() => handleSelect(loc)}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-muted"
+                >
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm font-medium">{loc.name}</span>
+                </button>
+              ))
+            ) : (
+              <p className="px-3 py-2 text-sm text-muted-foreground">
+                Nenhum local encontrado
+              </p>
+            )}
           </div>
         </div>
       )}
