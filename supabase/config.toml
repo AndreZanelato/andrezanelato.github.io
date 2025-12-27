@@ -1,1 +1,13 @@
 project_id = "ureotfaxdwjvkuerewmi"
+
+[functions.get-weather]
+verify_jwt = false
+
+[functions.get-tides]
+verify_jwt = false
+
+[functions.get-wind]
+verify_jwt = false
+
+[functions.search-municipalities]
+verify_jwt = false

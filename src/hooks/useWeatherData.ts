@@ -10,6 +10,13 @@ interface UseWeatherDataProps {
   locationName: string;
 }
 
+export interface ApiStatus {
+  name: string;
+  status: 'ok' | 'error' | 'loading';
+  source: string;
+  error?: string;
+}
+
 interface WeatherState {
   weather: WeatherData | null;
   tides: TideData[];
@@ -18,6 +25,7 @@ interface WeatherState {
   loading: boolean;
   error: string | null;
   usingMockData: boolean;
+  apiStatuses: ApiStatus[];
 }
 
 export function useWeatherData({ lat, lon, date, locationName }: UseWeatherDataProps): WeatherState {
@@ -29,11 +37,18 @@ export function useWeatherData({ lat, lon, date, locationName }: UseWeatherDataP
     loading: true,
     error: null,
     usingMockData: false,
+    apiStatuses: [],
   });
 
   useEffect(() => {
     const fetchData = async () => {
       setState(prev => ({ ...prev, loading: true, error: null }));
+
+      const apiStatuses: ApiStatus[] = [
+        { name: 'Clima', status: 'loading', source: 'OpenWeatherMap' },
+        { name: 'Marés', status: 'loading', source: 'WorldTides' },
+        { name: 'Vento', status: 'loading', source: 'OpenWeatherMap' },
+      ];
 
       try {
         // Fetch all data in parallel
@@ -56,32 +71,41 @@ export function useWeatherData({ lat, lon, date, locationName }: UseWeatherDataP
 
         // Process weather data
         if (weatherResult.error || weatherResult.data?.error) {
-          console.warn('Weather API failed, using mock data:', weatherResult.error || weatherResult.data?.error);
+          const errorMsg = weatherResult.error?.message || weatherResult.data?.error || 'Falha na conexão';
+          console.warn('Weather API failed:', errorMsg);
           weather = generateWeatherData(date, locationName);
           usingMockData = true;
+          apiStatuses[0] = { name: 'Clima', status: 'error', source: 'OpenWeatherMap', error: errorMsg };
         } else {
           weather = weatherResult.data;
+          apiStatuses[0] = { name: 'Clima', status: 'ok', source: 'OpenWeatherMap' };
         }
 
         // Process tides data
         if (tidesResult.error || tidesResult.data?.error || !tidesResult.data?.tides?.length) {
-          console.warn('Tides API failed, using mock data:', tidesResult.error || tidesResult.data?.error);
+          const errorMsg = tidesResult.error?.message || tidesResult.data?.error || 'Sem dados disponíveis';
+          console.warn('Tides API failed:', errorMsg);
           tides = generateTideData(date);
           usingMockData = true;
+          apiStatuses[1] = { name: 'Marés', status: 'error', source: 'WorldTides', error: errorMsg };
         } else {
           tides = tidesResult.data.tides;
+          apiStatuses[1] = { name: 'Marés', status: 'ok', source: 'WorldTides' };
         }
 
         // Process wind data
         if (windResult.error || windResult.data?.error) {
-          console.warn('Wind API failed, using mock data:', windResult.error || windResult.data?.error);
+          const errorMsg = windResult.error?.message || windResult.data?.error || 'Falha na conexão';
+          console.warn('Wind API failed:', errorMsg);
           wind = generateWindData(date);
           usingMockData = true;
+          apiStatuses[2] = { name: 'Vento', status: 'error', source: 'OpenWeatherMap', error: errorMsg };
         } else {
           wind = windResult.data;
+          apiStatuses[2] = { name: 'Vento', status: 'ok', source: 'OpenWeatherMap' };
         }
 
-        // Fish forecast is always generated locally (based on other conditions)
+        // Fish forecast is always generated locally
         const fishForecast = generateFishForecastData(date, locationName);
 
         setState({
@@ -92,19 +116,26 @@ export function useWeatherData({ lat, lon, date, locationName }: UseWeatherDataP
           loading: false,
           error: null,
           usingMockData,
+          apiStatuses,
         });
       } catch (error) {
         console.error('Error fetching weather data:', error);
         
-        // Fallback to mock data
+        const failedStatuses: ApiStatus[] = [
+          { name: 'Clima', status: 'error', source: 'OpenWeatherMap', error: 'Conexão falhou' },
+          { name: 'Marés', status: 'error', source: 'WorldTides', error: 'Conexão falhou' },
+          { name: 'Vento', status: 'error', source: 'OpenWeatherMap', error: 'Conexão falhou' },
+        ];
+
         setState({
           weather: generateWeatherData(date, locationName),
           tides: generateTideData(date),
           wind: generateWindData(date),
           fishForecast: generateFishForecastData(date, locationName),
           loading: false,
-          error: 'Não foi possível obter dados em tempo real. Exibindo dados ilustrativos.',
+          error: 'Não foi possível obter dados em tempo real.',
           usingMockData: true,
+          apiStatuses: failedStatuses,
         });
       }
     };
