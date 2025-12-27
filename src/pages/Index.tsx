@@ -6,16 +6,20 @@ import { TideTable } from "@/components/TideTable";
 import { WeatherForecast } from "@/components/WeatherForecast";
 import { FishForecast } from "@/components/FishForecast";
 import { WindForecast } from "@/components/WindForecast";
-import { generateTideData, generateWeatherData, generateFishForecastData, generateWindData } from "@/lib/mockData";
+import { useWeatherData } from "@/hooks/useWeatherData";
+import { getDefaultLocation, type Location } from "@/lib/locations";
+import { Loader2, AlertCircle } from "lucide-react";
 
 const Index = () => {
-  const [location, setLocation] = useState("Santos, SP");
+  const [location, setLocation] = useState<Location>(getDefaultLocation());
   const [date, setDate] = useState(new Date());
 
-  const tideData = generateTideData(date);
-  const weatherData = generateWeatherData(date, location);
-  const fishForecastData = generateFishForecastData(date, location);
-  const windData = generateWindData(date);
+  const { weather, tides, wind, fishForecast, loading, error, usingMockData } = useWeatherData({
+    lat: location.lat,
+    lon: location.lon,
+    date,
+    locationName: location.name,
+  });
 
   return (
     <div className="min-h-screen sky-gradient">
@@ -34,17 +38,37 @@ const Index = () => {
             onDateChange={setDate}
           />
 
-          <WeatherForecast weather={weatherData} />
+          {loading ? (
+            <div className="glass-card rounded-xl p-8 shadow-card flex flex-col items-center justify-center gap-3">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">Carregando dados...</p>
+            </div>
+          ) : (
+            <>
+              {(error || usingMockData) && (
+                <div className="glass-card rounded-xl p-4 shadow-card flex items-center gap-3 bg-sun/10">
+                  <AlertCircle className="h-5 w-5 text-sun shrink-0" />
+                  <p className="text-xs text-muted-foreground">
+                    {error || "Alguns dados são ilustrativos. Verifique suas chaves de API."}
+                  </p>
+                </div>
+              )}
 
-          <TideTable tides={tideData} />
+              {weather && <WeatherForecast weather={weather} />}
 
-          <WindForecast wind={windData} />
+              {tides.length > 0 && <TideTable tides={tides} />}
 
-          <FishForecast forecast={fishForecastData} />
+              {wind && <WindForecast wind={wind} />}
+
+              {fishForecast && <FishForecast forecast={fishForecast} />}
+            </>
+          )}
 
           {/* Footer note */}
           <p className="pt-4 text-center text-xs text-muted-foreground">
-            Dados ilustrativos. Para informações precisas, consulte fontes oficiais como a Marinha do Brasil.
+            {usingMockData 
+              ? "Dados ilustrativos. Para informações precisas, consulte fontes oficiais."
+              : "Dados fornecidos por OpenWeatherMap e WorldTides."}
           </p>
         </div>
       </main>
