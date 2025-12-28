@@ -77,6 +77,51 @@ async function getCoordinates(municipioNome: string, uf: string): Promise<{ lat:
   }
 }
 
+async function reverseGeocode(lat: number, lon: number): Promise<string | null> {
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&zoom=10&addressdetails=1`,
+      {
+        headers: {
+          'User-Agent': 'FishingApp/1.0'
+        }
+      }
+    );
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+    const address = data.address;
+    
+    if (address) {
+      const city = address.city || address.town || address.municipality || address.village;
+      const state = address.state;
+      
+      if (city && state) {
+        // Get state abbreviation
+        const stateAbbreviations: Record<string, string> = {
+          "Acre": "AC", "Alagoas": "AL", "Amapá": "AP", "Amazonas": "AM",
+          "Bahia": "BA", "Ceará": "CE", "Distrito Federal": "DF", "Espírito Santo": "ES",
+          "Goiás": "GO", "Maranhão": "MA", "Mato Grosso": "MT", "Mato Grosso do Sul": "MS",
+          "Minas Gerais": "MG", "Pará": "PA", "Paraíba": "PB", "Paraná": "PR",
+          "Pernambuco": "PE", "Piauí": "PI", "Rio de Janeiro": "RJ", "Rio Grande do Norte": "RN",
+          "Rio Grande do Sul": "RS", "Rondônia": "RO", "Roraima": "RR", "Santa Catarina": "SC",
+          "São Paulo": "SP", "Sergipe": "SE", "Tocantins": "TO"
+        };
+        
+        const uf = stateAbbreviations[state] || state;
+        return `${city}, ${uf}`;
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error("Reverse geocoding error:", error);
+    return null;
+  }
+}
+
 serve(async (req) => {
   // Handle CORS
   if (req.method === 'OPTIONS') {
@@ -84,7 +129,19 @@ serve(async (req) => {
   }
 
   try {
-    const { query, limit = 10 } = await req.json();
+    const body = await req.json();
+    const { query, limit = 10, lat, lon, reverse } = body;
+
+    // Handle reverse geocoding request
+    if (reverse && lat !== undefined && lon !== undefined) {
+      console.log(`Reverse geocoding for: ${lat}, ${lon}`);
+      const name = await reverseGeocode(lat, lon);
+      
+      return new Response(
+        JSON.stringify({ name }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
     if (!query || query.length < 2) {
       return new Response(
