@@ -9,7 +9,7 @@ export function Header() {
             <Waves className="h-6 w-6 animate-wave" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-shadow">MaréTempo</h1>
+            <h1 className="text-2xl font-bold text-shadow">Maré de Bolso</h1>
             <p className="text-sm opacity-90">Tábua de marés e previsão do tempo</p>
           </div>
         </div>
