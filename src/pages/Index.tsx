@@ -6,10 +6,9 @@ import { TideTable } from "@/components/TideTable";
 import { WeatherForecast } from "@/components/WeatherForecast";
 import { FishForecast } from "@/components/FishForecast";
 import { WindForecast } from "@/components/WindForecast";
-import { AdBanner } from "@/components/AdBanner";
 import { useWeatherData, type ApiStatus } from "@/hooks/useWeatherData";
 import { useGeolocation } from "@/hooks/useGeolocation";
-import { getDefaultLocation, type Location } from "@/lib/locations";
+import { type Location } from "@/lib/locations";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, CheckCircle2, XCircle, AlertCircle, Navigation } from "lucide-react";
 
@@ -34,7 +33,7 @@ function ApiStatusBadge({ status }: { status: ApiStatus }) {
 }
 
 const Index = () => {
-  const [location, setLocation] = useState<Location>(getDefaultLocation());
+  const [location, setLocation] = useState<Location | null>(null);
   const [date, setDate] = useState(new Date());
   const [geoLocationApplied, setGeoLocationApplied] = useState(false);
   
@@ -85,14 +84,28 @@ const Index = () => {
     reverseGeocode();
   }, [geolocation.latitude, geolocation.longitude, geoLocationApplied]);
 
+  // Set default location only if geolocation failed
+  useEffect(() => {
+    if (!geolocation.loading && geolocation.error && !location) {
+      setLocation({
+        name: "Santos, SP",
+        lat: -23.9608,
+        lon: -46.3336,
+      });
+    }
+  }, [geolocation.loading, geolocation.error, location]);
+
   const { weather, tides, wind, fishForecast, loading, error, usingMockData, apiStatuses } = useWeatherData({
-    lat: location.lat,
-    lon: location.lon,
+    lat: location?.lat ?? -23.9608,
+    lon: location?.lon ?? -46.3336,
     date,
-    locationName: location.name,
+    locationName: location?.name ?? "Santos, SP",
   });
 
   const hasErrors = apiStatuses.some(s => s.status === 'error');
+
+  // Show loading while waiting for geolocation
+  const isInitializing = geolocation.loading || (!location && !geolocation.error);
 
   return (
     <div className="min-h-screen sky-gradient">
@@ -101,30 +114,29 @@ const Index = () => {
       <main className="container mx-auto max-w-lg px-4 pb-8">
         <div className="-mt-4 space-y-4">
           {/* Geolocation status */}
-          {geolocation.loading && (
+          {isInitializing && (
             <div className="glass-card rounded-xl p-3 shadow-card flex items-center gap-3">
               <Navigation className="h-4 w-4 text-primary animate-pulse" />
               <span className="text-xs text-muted-foreground">Detectando sua localização...</span>
             </div>
           )}
 
-          <LocationSearch
-            location={location}
-            onLocationChange={(loc) => {
-              setLocation(loc);
-              setGeoLocationApplied(true); // Prevent geolocation override
-            }}
-          />
+          {location && (
+            <LocationSearch
+              location={location}
+              onLocationChange={(loc) => {
+                setLocation(loc);
+                setGeoLocationApplied(true); // Prevent geolocation override
+              }}
+            />
+          )}
 
           <DatePicker
             date={date}
             onDateChange={setDate}
           />
 
-          {/* Ad Banner - Top */}
-          <AdBanner adSlot="YOUR_AD_SLOT_1" className="my-4" />
-
-          {loading ? (
+          {loading || isInitializing ? (
             <div className="glass-card rounded-xl p-8 shadow-card flex flex-col items-center justify-center gap-3">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
               <p className="text-sm text-muted-foreground">Carregando dados...</p>
@@ -155,9 +167,6 @@ const Index = () => {
 
               {tides.length > 0 && <TideTable tides={tides} />}
 
-              {/* Ad Banner - Middle */}
-              <AdBanner adSlot="YOUR_AD_SLOT_2" className="my-4" />
-
               {wind && <WindForecast wind={wind} />}
 
               {fishForecast && <FishForecast forecast={fishForecast} />}
@@ -170,9 +179,6 @@ const Index = () => {
               ? "Alguns dados são ilustrativos. Para informações precisas, consulte fontes oficiais."
               : "Dados fornecidos por OpenWeatherMap e WorldTides."}
           </p>
-
-          {/* Ad Banner - Bottom */}
-          <AdBanner adSlot="YOUR_AD_SLOT_3" className="mt-4" />
         </div>
       </main>
     </div>
