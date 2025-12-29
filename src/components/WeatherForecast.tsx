@@ -1,14 +1,19 @@
-import { Sun, Cloud, CloudRain, Wind, Droplets, Thermometer, Eye } from "lucide-react";
+import { Sun, Cloud, CloudRain, Wind, Droplets, Thermometer, Eye, Sunrise, Sunset, Gauge } from "lucide-react";
 
 interface WeatherData {
   condition: "sunny" | "cloudy" | "rainy" | "partly-cloudy";
   temperature: number;
   feelsLike: number;
   humidity: number;
+  pressure: number;
   windSpeed: number;
   windDirection: string;
   visibility: number;
   uvIndex: number;
+  description?: string;
+  sunrise: string;
+  sunset: string;
+  dayLength: string;
 }
 
 interface WeatherForecastProps {
@@ -47,7 +52,9 @@ export function WeatherForecast({ weather }: WeatherForecastProps) {
         </div>
         <div>
           <h2 className="text-lg font-bold">Previsão do Tempo</h2>
-          <p className="text-xs text-muted-foreground">Condições atuais</p>
+          <p className="text-xs text-muted-foreground">
+            {weather.description ? weather.description.charAt(0).toUpperCase() + weather.description.slice(1) : "Condições atuais"}
+          </p>
         </div>
       </div>
 
@@ -70,6 +77,28 @@ export function WeatherForecast({ weather }: WeatherForecastProps) {
         </div>
       </div>
 
+      {/* Sun times */}
+      <div className="mb-4 flex items-center justify-between rounded-xl bg-gradient-to-r from-sun/10 to-orange-500/10 p-4">
+        <div className="flex items-center gap-3">
+          <Sunrise className="h-5 w-5 text-sun" />
+          <div>
+            <p className="text-xs text-muted-foreground">Nascer do Sol</p>
+            <p className="text-sm font-semibold">{weather.sunrise}</p>
+          </div>
+        </div>
+        <div className="text-center">
+          <p className="text-xs text-muted-foreground">Duração do Dia</p>
+          <p className="text-sm font-semibold">{weather.dayLength}</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="text-right">
+            <p className="text-xs text-muted-foreground">Pôr do Sol</p>
+            <p className="text-sm font-semibold">{weather.sunset}</p>
+          </div>
+          <Sunset className="h-5 w-5 text-orange-500" />
+        </div>
+      </div>
+
       {/* Weather details grid */}
       <div className="grid grid-cols-2 gap-3">
         <div className="flex items-center gap-3 rounded-xl bg-muted/50 p-4">
@@ -87,6 +116,14 @@ export function WeatherForecast({ weather }: WeatherForecastProps) {
           <div>
             <p className="text-xs text-muted-foreground">Umidade</p>
             <p className="text-sm font-semibold">{weather.humidity}%</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 rounded-xl bg-muted/50 p-4">
+          <Gauge className="h-5 w-5 text-primary" />
+          <div>
+            <p className="text-xs text-muted-foreground">Pressão</p>
+            <p className="text-sm font-semibold">{weather.pressure} hPa</p>
           </div>
         </div>
 

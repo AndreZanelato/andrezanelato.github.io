@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { LocationSearch } from "@/components/LocationSearch";
 import { DatePicker } from "@/components/DatePicker";
@@ -10,7 +11,7 @@ import { useWeatherData, type ApiStatus } from "@/hooks/useWeatherData";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { type Location } from "@/lib/locations";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, CheckCircle2, XCircle, AlertCircle, Navigation } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, AlertCircle, Navigation, ExternalLink } from "lucide-react";
 
 function ApiStatusBadge({ status }: { status: ApiStatus }) {
   if (status.status === 'ok') {
@@ -173,12 +174,33 @@ const Index = () => {
             </>
           )}
 
-          {/* Footer note */}
-          <p className="pt-4 text-center text-xs text-muted-foreground">
-            {usingMockData 
-              ? "Alguns dados são ilustrativos. Para informações precisas, consulte fontes oficiais."
-              : "Dados fornecidos por OpenWeatherMap e WorldTides."}
-          </p>
+          {/* Footer */}
+          <footer className="pt-6 pb-2 text-center space-y-2">
+            <div className="flex items-center justify-center gap-4 text-xs">
+              <Link 
+                to="/apis" 
+                className="text-primary hover:underline flex items-center gap-1"
+              >
+                APIs
+                <ExternalLink className="h-3 w-3" />
+              </Link>
+              <span className="text-muted-foreground">•</span>
+              <a 
+                href="https://www.andrezanelato.com.br" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-primary hover:underline flex items-center gap-1"
+              >
+                Desenvolvido por André Zanelato
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {usingMockData 
+                ? "Alguns dados são ilustrativos. Para informações precisas, consulte fontes oficiais."
+                : "Dados fornecidos por OpenWeatherMap e WorldTides."}
+            </p>
+          </footer>
         </div>
       </main>
     </div>
