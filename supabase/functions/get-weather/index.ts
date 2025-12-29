@@ -57,16 +57,37 @@ serve(async (req) => {
     const directions = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
     const windDirection = directions[Math.round(windDeg / 45) % 8];
 
+    // Get timezone offset from API response (in seconds)
+    const timezoneOffset = data.timezone || 0;
+    
+    // Convert Unix timestamps to local time strings using the location's timezone
+    const formatTimeWithOffset = (timestamp: number) => {
+      // Add timezone offset to get local time
+      const localTimestamp = (timestamp + timezoneOffset) * 1000;
+      const date = new Date(localTimestamp);
+      // Use UTC methods since we've already adjusted for timezone
+      return `${String(date.getUTCHours()).padStart(2, '0')}:${String(date.getUTCMinutes()).padStart(2, '0')}`;
+    };
+
+    // Calculate day length
+    const dayLengthMs = (data.sys?.sunset - data.sys?.sunrise) * 1000;
+    const dayLengthHours = Math.floor(dayLengthMs / (1000 * 60 * 60));
+    const dayLengthMinutes = Math.floor((dayLengthMs % (1000 * 60 * 60)) / (1000 * 60));
+
     const weatherData = {
       condition,
       temperature: Math.round(data.main?.temp || 0),
       feelsLike: Math.round(data.main?.feels_like || 0),
       humidity: data.main?.humidity || 0,
+      pressure: data.main?.pressure || 0, // hPa
       windSpeed: Math.round((data.wind?.speed || 0) * 3.6), // m/s to km/h
       windDirection,
       visibility: Math.round((data.visibility || 10000) / 1000), // m to km
       uvIndex: 5, // OpenWeatherMap free tier doesn't include UV, we'll estimate
       description: data.weather[0]?.description || '',
+      sunrise: formatTimeWithOffset(data.sys?.sunrise),
+      sunset: formatTimeWithOffset(data.sys?.sunset),
+      dayLength: `${dayLengthHours}h ${dayLengthMinutes}min`,
     };
 
     return new Response(JSON.stringify(weatherData), {

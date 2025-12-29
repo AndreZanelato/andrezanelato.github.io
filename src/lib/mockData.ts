@@ -9,10 +9,15 @@ export interface WeatherData {
   temperature: number;
   feelsLike: number;
   humidity: number;
+  pressure: number;
   windSpeed: number;
   windDirection: string;
   visibility: number;
   uvIndex: number;
+  description?: string;
+  sunrise: string;
+  sunset: string;
+  dayLength: string;
 }
 
 export interface SunMoonData {
@@ -68,15 +73,23 @@ export function generateWeatherData(date: Date, location: string): WeatherData {
   const baseTemp = 22 + (dayOfMonth % 10);
   const humidity = 50 + (dayOfMonth % 40);
   
+  // Generate sun times based on date
+  const sunriseHour = 5 + (dayOfMonth % 2);
+  const sunsetHour = 17 + (dayOfMonth % 3);
+  
   return {
     condition: conditions[conditionIndex],
     temperature: baseTemp,
     feelsLike: baseTemp + (humidity > 70 ? 3 : -1),
     humidity,
+    pressure: 1010 + (dayOfMonth % 20),
     windSpeed: 10 + (dayOfMonth % 20),
     windDirection: ["N", "NE", "E", "SE", "S", "SW", "W", "NW"][dayOfMonth % 8],
     visibility: 8 + (dayOfMonth % 12),
     uvIndex: Math.min(11, 3 + (dayOfMonth % 8)),
+    sunrise: `${String(sunriseHour).padStart(2, '0')}:${String((dayOfMonth * 2) % 60).padStart(2, '0')}`,
+    sunset: `${String(sunsetHour).padStart(2, '0')}:${String((dayOfMonth * 3) % 60).padStart(2, '0')}`,
+    dayLength: `${sunsetHour - sunriseHour}h ${Math.abs(((dayOfMonth * 3) % 60) - ((dayOfMonth * 2) % 60))}min`,
   };
 }
 
