@@ -15,13 +15,21 @@ export interface WeatherData {
   uvIndex: number;
 }
 
+export interface SunMoonData {
+  sunrise: string;
+  sunset: string;
+  moonrise: string;
+  moonset: string;
+  dayLength: string;
+}
+
 export interface FishForecastData {
   overallRating: "excellent" | "good" | "moderate" | "poor";
   bestTimes: string[];
   moonPhase: string;
   tideInfluence: string;
-  recommendedSpecies: string[];
-  tips: string;
+  tips: string[];
+  sunMoon: SunMoonData;
 }
 
 export interface WindData {
@@ -103,29 +111,50 @@ const seasonalSpecies: Record<number, string[]> = {
 // Generate mock fish forecast data
 export function generateFishForecastData(date: Date, location: string): FishForecastData {
   const dayOfMonth = date.getDate();
-  const month = date.getMonth();
   const ratings: FishForecastData["overallRating"][] = ["excellent", "good", "moderate", "poor"];
   const ratingIndex = (dayOfMonth + location.length) % 4;
   
   const moonPhases = ["Lua Nova", "Lua Crescente", "Lua Cheia", "Lua Minguante"];
   const tideInfluences = ["Favorável", "Muito Favorável", "Neutro", "Desfavorável"];
   
-  // Get seasonal species for current month
-  const currentSeasonSpecies = seasonalSpecies[month];
-  
-  const tips = [
+  const allTips = [
     "Aposte em iscas naturais durante a maré enchendo para melhores resultados.",
     "O vento leste favorece a aproximação de cardumes na costa.",
     "Pesque próximo às pedras durante a maré baixa.",
     "Iscas artificiais funcionam melhor nas primeiras horas da manhã.",
     "A lua cheia aumenta a atividade dos peixes durante a noite.",
+    "Prefira linhas mais finas em águas claras para não assustar os peixes.",
+    "Observe as aves marinhas - onde elas mergulham há cardumes.",
+    "O amanhecer e o entardecer são os melhores horários para pescar.",
+    "Marés de sizígia (lua nova/cheia) costumam trazer mais peixes.",
+    "Use iscas vivas para atrair peixes maiores e mais arredios.",
+    "Verifique a temperatura da água - peixes preferem águas entre 20-26°C.",
+    "Pescar após chuvas leves pode ser produtivo por causa da água movimentada.",
   ];
 
   const baseHour = (dayOfMonth % 6) + 5;
   
-  // Select 4 species from the seasonal list based on the day
-  const speciesStartIndex = dayOfMonth % 3;
-  const recommendedSpecies = currentSeasonSpecies.slice(speciesStartIndex, speciesStartIndex + 4);
+  // Select 3-4 tips based on the day
+  const tipStartIndex = dayOfMonth % allTips.length;
+  const selectedTips = [
+    allTips[tipStartIndex],
+    allTips[(tipStartIndex + 3) % allTips.length],
+    allTips[(tipStartIndex + 7) % allTips.length],
+  ];
+  
+  // Generate sun/moon times based on date
+  const sunriseHour = 5 + (dayOfMonth % 2);
+  const sunsetHour = 17 + (dayOfMonth % 3);
+  const moonriseHour = (dayOfMonth + 6) % 24;
+  const moonsetHour = (moonriseHour + 12) % 24;
+  
+  const sunMoon: SunMoonData = {
+    sunrise: `${String(sunriseHour).padStart(2, '0')}:${String((dayOfMonth * 2) % 60).padStart(2, '0')}`,
+    sunset: `${String(sunsetHour).padStart(2, '0')}:${String((dayOfMonth * 3) % 60).padStart(2, '0')}`,
+    moonrise: `${String(moonriseHour).padStart(2, '0')}:${String((dayOfMonth * 5) % 60).padStart(2, '0')}`,
+    moonset: `${String(moonsetHour).padStart(2, '0')}:${String((dayOfMonth * 4) % 60).padStart(2, '0')}`,
+    dayLength: `${sunsetHour - sunriseHour}h ${Math.abs(((dayOfMonth * 3) % 60) - ((dayOfMonth * 2) % 60))}min`,
+  };
   
   return {
     overallRating: ratings[ratingIndex],
@@ -135,8 +164,8 @@ export function generateFishForecastData(date: Date, location: string): FishFore
     ],
     moonPhase: moonPhases[dayOfMonth % 4],
     tideInfluence: tideInfluences[(dayOfMonth + 1) % 4],
-    recommendedSpecies,
-    tips: tips[dayOfMonth % 5],
+    tips: selectedTips,
+    sunMoon,
   };
 }
 
