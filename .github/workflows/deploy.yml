@@ -30,7 +30,7 @@ jobs:
         run: npm run build
 
       - name: Upload artifact for GitHub Pages
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v2
         with:
           path: ./dist
 
@@ -42,7 +42,7 @@ jobs:
       url: https://andrezanelato.github.io
     steps:
       - name: Download artifact
-        uses: actions/download-pages-artifact@v1
+        uses: actions/download-pages-artifact@v2
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v3
