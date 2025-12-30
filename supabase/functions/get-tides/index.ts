@@ -6,6 +6,24 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Generate mock tide data when API fails
+function generateMockTides(date: Date): { time: string; height: number; type: 'high' | 'low' }[] {
+  const baseHour = 6 + Math.floor(Math.random() * 2);
+  const tides = [];
+  
+  for (let i = 0; i < 4; i++) {
+    const hour = (baseHour + i * 6) % 24;
+    const isHigh = i % 2 === 0;
+    tides.push({
+      time: `${hour.toString().padStart(2, '0')}:${Math.floor(Math.random() * 60).toString().padStart(2, '0')}`,
+      height: isHigh ? 1.2 + Math.random() * 0.5 : 0.3 + Math.random() * 0.3,
+      type: isHigh ? 'high' : 'low' as 'high' | 'low',
+    });
+  }
+  
+  return tides.sort((a, b) => a.time.localeCompare(b.time));
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -17,8 +35,11 @@ serve(async (req) => {
     const apiKey = Deno.env.get('WORLDTIDES_API_KEY');
 
     if (!apiKey) {
-      console.error('WorldTides API key not configured');
-      throw new Error('API key not configured');
+      console.warn('WorldTides API key not configured, using mock data');
+      const mockTides = generateMockTides(new Date(date));
+      return new Response(JSON.stringify({ tides: mockTides, station: 'Mock Station', isMock: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     // Parse the date and create start/end timestamps
@@ -36,16 +57,24 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('WorldTides API error:', response.status, errorText);
-      throw new Error(`Tides API error: ${response.status}`);
+      console.warn('WorldTides API error:', response.status, errorText);
+      
+      // Return mock data instead of throwing error
+      const mockTides = generateMockTides(targetDate);
+      return new Response(JSON.stringify({ tides: mockTides, station: 'Dados Estimados', isMock: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const data = await response.json();
     console.log('Tides data received:', JSON.stringify(data));
 
     if (data.error) {
-      console.error('WorldTides API returned error:', data.error);
-      throw new Error(data.error);
+      console.warn('WorldTides API returned error:', data.error);
+      const mockTides = generateMockTides(targetDate);
+      return new Response(JSON.stringify({ tides: mockTides, station: 'Dados Estimados', isMock: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     // Transform the data to match our app's format
@@ -56,19 +85,29 @@ serve(async (req) => {
       
       return {
         time: `${hours}:${minutes}`,
-        height: Math.round(extreme.height * 100) / 100, // Round to 2 decimal places
+        height: Math.round(extreme.height * 100) / 100,
         type: extreme.type === 'High' ? 'high' : 'low',
       };
     });
 
-    return new Response(JSON.stringify({ tides, station: data.station }), {
+    // If no tides returned, use mock data
+    if (tides.length === 0) {
+      const mockTides = generateMockTides(targetDate);
+      return new Response(JSON.stringify({ tides: mockTides, station: 'Dados Estimados', isMock: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    return new Response(JSON.stringify({ tides, station: data.station, isMock: false }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('Error in get-tides function:', errorMessage);
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      status: 500,
+    
+    // Return mock data on any error
+    const mockTides = generateMockTides(new Date());
+    return new Response(JSON.stringify({ tides: mockTides, station: 'Dados Estimados', isMock: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
