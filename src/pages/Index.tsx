@@ -7,6 +7,7 @@ import { TideTable } from "@/components/TideTable";
 import { WeatherForecast } from "@/components/WeatherForecast";
 import { FishForecast } from "@/components/FishForecast";
 import { WindForecast } from "@/components/WindForecast";
+import { LocationMap } from "@/components/LocationMap";
 import { useWeatherData, type ApiStatus } from "@/hooks/useWeatherData";
 import { useGeolocation } from "@/hooks/useGeolocation";
 import { type Location } from "@/lib/locations";
@@ -165,6 +166,14 @@ const Index = () => {
               )}
 
               {weather && <WeatherForecast weather={weather} />}
+
+              {location && (
+                <LocationMap 
+                  latitude={location.lat} 
+                  longitude={location.lon} 
+                  locationName={location.name} 
+                />
+              )}
 
               {tides.length > 0 && <TideTable tides={tides} />}
 
